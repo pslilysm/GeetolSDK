@@ -1,0 +1,55 @@
+plugins {
+    id 'com.android.library'
+}
+
+android {
+    compileSdk rootProject.ext.compileSdk
+
+    defaultConfig {
+        minSdk rootProject.ext.minSdk
+        targetSdk rootProject.ext.targetSdk
+
+        consumerProguardFiles "consumer-rules.pro"
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+}
+
+dependencies {
+
+    implementation 'androidx.appcompat:appcompat:1.4.1'
+    implementation 'com.google.android.material:material:1.5.0'
+
+    // proguard keep open ad sdk
+    api fileTree(dir: 'libs', include: ['*.jar', '*.aar'])
+
+    // proguard ignore
+    // add core lib to your dependencies
+    api 'com.github.pslilysm.commonmodule:corelibrary:1.1.7'
+    // add rx lib to your dependencies
+    api 'com.github.pslilysm.commonmodule:rxlibrary:1.1.7'
+
+    // proguard ignore
+    api 'com.aliyun.dpa:oss-android-sdk:2.9.11'
+
+    // proguard ignore
+    api group: 'commons-codec', name: 'commons-codec', version: '1.15'
+
+    // proguard keep
+    api  'com.umeng.umsdk:common:9.4.4'// 必选
+    api  'com.umeng.umsdk:asms:1.4.1'// 必选
+    api 'com.umeng.umsdk:apm:1.5.2' // 错误分析升级为独立SDK，看crash数据请一定
+
+    // proguard ignore
+    api 'com.github.getActivity:XXPermissions:13.5'
+
+}
