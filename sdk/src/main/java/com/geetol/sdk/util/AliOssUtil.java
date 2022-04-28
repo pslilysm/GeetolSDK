@@ -34,7 +34,6 @@ import java.util.concurrent.ExecutorService;
 
 import pers.cxd.corelibrary.AppHolder;
 import pers.cxd.corelibrary.util.DataStructureUtil;
-import pers.cxd.corelibrary.util.ExecutorsHolder;
 
 /**
  * 阿里云工具类
@@ -115,14 +114,18 @@ public class AliOssUtil {
      *
      * @param uploadFiles   要上传的文件
      * @param batchCallback 回调
+     * @param ioExecutor    异步操作的线程池，null则使用SDK的IO线程池
      */
-    public static void uploadBatchFileAsync(List<File> uploadFiles, BatchCallback batchCallback) {
+    public static void uploadBatchFileAsync(List<File> uploadFiles, BatchCallback batchCallback, @Nullable ExecutorService ioExecutor) {
         if (DataStructureUtil.isEmpty(uploadFiles)) {
             throw new IllegalArgumentException("uploadFiles not have any elements to upload");
         }
-        final WeakReference<BatchCallback> wrBatchCallback = new WeakReference<>(batchCallback);
         if (sOSSClient != null) {
-            ExecutorsHolder.io().execute(() -> {
+            if (ioExecutor == null) {
+                ioExecutor = GeetolSDKConfig.SDK_GLOBAL_IO_EXECUTOR;
+            }
+            final WeakReference<BatchCallback> wrBatchCallback = new WeakReference<>(batchCallback);
+            ioExecutor.execute(() -> {
                 final CopyOnWriteArrayList<String> urls = new CopyOnWriteArrayList<>();
                 final CountDownLatch countDownLatch = new CountDownLatch(uploadFiles.size());
                 final Thread curThread = Thread.currentThread();
@@ -171,38 +174,44 @@ public class AliOssUtil {
     /**
      * 异步上传Uri至阿里云
      *
-     * @param ctx       用来获取Uri的内容
-     * @param uploadUri 需要上传的Uri
-     * @param callback  回调
+     * @param ctx        用来获取Uri的内容
+     * @param uploadUri  需要上传的Uri
+     * @param callback   回调
+     * @param ioExecutor 异步操作的线程池，null则使用SDK的IO线程池
      */
-    public static void uploadUriAsync(Context ctx, Uri uploadUri, Callback callback) {
-        final WeakReference<Callback> wrCallback = new WeakReference<>(callback);
+    public static void uploadUriAsync(Context ctx, Uri uploadUri, Callback callback, @Nullable ExecutorService ioExecutor) {
         if (sOSSClient != null) {
-            byte[] data;
-            try (InputStream is = ctx.getContentResolver().openInputStream(uploadUri)) {
-                data = new byte[is.available()];
-                IOUtils.read(is, data);
-            } catch (IOException ex) {
-                callback.onFailure();
-                return;
+            if (ioExecutor == null) {
+                ioExecutor = GeetolSDKConfig.SDK_GLOBAL_IO_EXECUTOR;
             }
-            String aliOssName = new String(Hex.encodeHex(DigestUtils.md5(data)));
-            sOSSClient.asyncPutObject(new PutObjectRequest(sConfig.getBucketName(), aliOssName, data), new OSSCompletedCallback<PutObjectRequest, PutObjectResult>() {
-                @Override
-                public void onSuccess(PutObjectRequest request, PutObjectResult result) {
-                    Callback callback1 = wrCallback.get();
-                    if (callback1 != null) {
-                        callback1.onSuccess("http://" + sConfig.getBucketName() + "." + sConfig.getEndpoint() + "/" + aliOssName);
-                    }
+            final WeakReference<Callback> wrCallback = new WeakReference<>(callback);
+            ioExecutor.execute(() -> {
+                byte[] data;
+                try (InputStream is = ctx.getContentResolver().openInputStream(uploadUri)) {
+                    data = new byte[is.available()];
+                    IOUtils.read(is, data);
+                } catch (IOException ex) {
+                    callback.onFailure();
+                    return;
                 }
+                String aliOssName = new String(Hex.encodeHex(DigestUtils.md5(data)));
+                sOSSClient.asyncPutObject(new PutObjectRequest(sConfig.getBucketName(), aliOssName, data), new OSSCompletedCallback<PutObjectRequest, PutObjectResult>() {
+                    @Override
+                    public void onSuccess(PutObjectRequest request, PutObjectResult result) {
+                        Callback callback1 = wrCallback.get();
+                        if (callback1 != null) {
+                            callback1.onSuccess("http://" + sConfig.getBucketName() + "." + sConfig.getEndpoint() + "/" + aliOssName);
+                        }
+                    }
 
-                @Override
-                public void onFailure(PutObjectRequest request, ClientException clientException, ServiceException serviceException) {
-                    Callback callback1 = wrCallback.get();
-                    if (callback1 != null) {
-                        callback1.onFailure();
+                    @Override
+                    public void onFailure(PutObjectRequest request, ClientException clientException, ServiceException serviceException) {
+                        Callback callback1 = wrCallback.get();
+                        if (callback1 != null) {
+                            callback1.onFailure();
+                        }
                     }
-                }
+                });
             });
         } else {
             callback.onFailure();
@@ -215,15 +224,19 @@ public class AliOssUtil {
      * @param ctx           用来获取Uri的内容
      * @param uploadUris    需要上传的Uris
      * @param batchCallback 回调
+     * @param ioExecutor    异步操作的线程池，null则使用SDK的IO线程池
      */
-    public static void uploadBatchUriAsync(Context ctx, List<Uri> uploadUris, BatchCallback batchCallback) {
+    public static void uploadBatchUriAsync(Context ctx, List<Uri> uploadUris, BatchCallback batchCallback, @Nullable ExecutorService ioExecutor) {
         if (DataStructureUtil.isEmpty(uploadUris)) {
             throw new IllegalArgumentException("uploadUris not have any elements to upload");
         }
         if (sOSSClient != null) {
-            ExecutorsHolder.io().execute(() -> {
+            if (ioExecutor == null) {
+                ioExecutor = GeetolSDKConfig.SDK_GLOBAL_IO_EXECUTOR;
+            }
+            final WeakReference<BatchCallback> wrBatchCallback = new WeakReference<>(batchCallback);
+            ioExecutor.execute(() -> {
                 final CopyOnWriteArrayList<String> urls = new CopyOnWriteArrayList<>();
-                final WeakReference<BatchCallback> wrBatchCallback = new WeakReference<>(batchCallback);
                 final Thread curThread = Thread.currentThread();
                 final CountDownLatch countDownLatch = new CountDownLatch(uploadUris.size());
                 uploadUris.forEach(uploadUri -> {
