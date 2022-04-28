@@ -1,27 +1,25 @@
 package com.geetol.sdk;
 
+import java.util.concurrent.ScheduledExecutorService;
+
+import pers.cxd.corelibrary.util.ExecutorsHolder;
+
 /**
- * SDK初始化类
+ * SDK配置
  *
  * @author pslilysm
  * @since 1.0.0
  */
 public class GeetolSDKConfig {
 
-    public static String LOG_TAG = "DEBUG_GeetolSDK";
     public static String BASE_URL;
     public static String APP_ID;
     public static String APP_KEY;
     public static String APP_NAME;
 
-    /**
-     * 设置SDK打印日志的TAG，Release包不会输出日志
-     *
-     * @param logTag
-     */
-    public static void setLogTag(String logTag) {
-        LOG_TAG = logTag;
-    }
+    public static String LOG_TAG = "DEBUG_GeetolSDK";
+    public static ScheduledExecutorService SDK_GLOBAL_IO_EXECUTOR = ExecutorsHolder.io();
+    public static ScheduledExecutorService SDK_GLOBAL_COMPUTE_EXECUTOR = ExecutorsHolder.compute();
 
     /**
      * 初始化SDK配置
@@ -37,6 +35,33 @@ public class GeetolSDKConfig {
         APP_ID = app_id;
         APP_KEY = app_key;
         APP_NAME = app_name;
+    }
+
+    /**
+     * 设置SDK打印日志的TAG，Release包不会输出日志
+     *
+     * @param logTag
+     */
+    public static void setLogTag(String logTag) {
+        LOG_TAG = logTag;
+    }
+
+    /**
+     * 设置SDK全局的IO线程池
+     *
+     * @param globalIOExecutor
+     */
+    public static void setGlobalIoExecutor(ScheduledExecutorService globalIOExecutor) {
+        SDK_GLOBAL_IO_EXECUTOR = globalIOExecutor;
+    }
+
+    /**
+     * 设置SDK全局的计算线程池
+     *
+     * @param globalComputeExecutor
+     */
+    public static void setGlobalComputeExecutor(ScheduledExecutorService globalComputeExecutor) {
+        SDK_GLOBAL_COMPUTE_EXECUTOR = globalComputeExecutor;
     }
 
 }
