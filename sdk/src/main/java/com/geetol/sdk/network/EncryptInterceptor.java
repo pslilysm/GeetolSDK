@@ -2,6 +2,8 @@ package com.geetol.sdk.network;
 
 import android.util.Base64;
 
+import androidx.annotation.NonNull;
+
 import com.geetol.sdk.GeetolSDKConfig;
 import com.geetol.sdk.manager.AppConfigManager;
 import com.geetol.sdk.proguard_data.UserData;
@@ -19,6 +21,7 @@ import okhttp3.Interceptor;
 import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
+import pers.cxd.corelibrary.util.ExceptionUtil;
 import pers.cxd.corelibrary.util.reflection.ReflectionUtil;
 
 /**
@@ -35,18 +38,16 @@ public class EncryptInterceptor implements Interceptor {
         try {
             mDigest = MessageDigest.getInstance("SHA-1");
         } catch (NoSuchAlgorithmException e) {
-            throw new RuntimeException();
+            throw ExceptionUtil.rethrow(e);
         }
     }
 
+    @NonNull
     @Override
     public Response intercept(Chain chain) throws IOException {
         Request request = chain.request();
         RequestBody requestBody = request.body();
         if (requestBody instanceof FormBody) {
-//            if (requestBody == null) {
-//                requestBody = new FormBody.Builder().build();
-//            }
             try {
                 FormBody formBody = appendCommonForm((FormBody) requestBody);
                 request = request.newBuilder()
@@ -59,31 +60,17 @@ public class EncryptInterceptor implements Interceptor {
     }
 
     private FormBody appendCommonForm(FormBody original) throws ReflectiveOperationException {
-        // 获取已经编码的Form表单
-        // 这里使用的反射，需要在proguard里面配置
-        List<String> encodedNames = ReflectionUtil.getFieldValue(original, "encodedNames");
-        List<String> encodedValues = ReflectionUtil.getFieldValue(original, "encodedValues");
         Map<String, String> map = new TreeMap<>(String::compareTo);
         map.put("appid", GeetolSDKConfig.APP_ID);
         map.put("device", AppConfigManager.getInstance().getDeviceID());
-        String user_id = "";
-        String user_key = "";
         UserData userData = AppConfigManager.getInstance().getUserData();
         if (userData != null) {
-            user_id = String.valueOf(userData.getUser_id());
-            user_key = userData.getUkey();
+            map.put("user_id", String.valueOf(userData.getUser_id()));
+            map.put("user_key", userData.getUkey());
         }
-        map.put("user_id", user_id);
-        map.put("user_key", user_key);
-        for (int i = 0; i < encodedNames.size(); i++) {
-            // Form表单请求的数据在达到拦截器这里的时候，已经进行了编码
-            // 我们需要进行反编码再加密
-            // 这里使用的反射，需要在proguard里面配置
-            String key = ReflectionUtil.invokeStaticMethod(HttpUrl.class, "percentDecode",
-                    String.class, boolean.class, encodedNames.get(i), true);
-            String value = ReflectionUtil.invokeStaticMethod(HttpUrl.class, "percentDecode",
-                    String.class, boolean.class, encodedValues.get(i), true);
-            map.put(key, value);
+        int size = original.size();
+        for (int i = 0; i < size; i++) {
+            map.put(original.name(i), original.value(i));
         }
         StringBuilder sb = new StringBuilder();
         map.forEach((key, value) -> sb.append(key)
