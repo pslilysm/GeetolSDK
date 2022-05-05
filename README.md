@@ -20,7 +20,7 @@ dependencyResolutionManagement {
         maven { url 'https://jitpack.io' }
     }
 }
-groovy
+```
 
 * step 2
 ```groovy
