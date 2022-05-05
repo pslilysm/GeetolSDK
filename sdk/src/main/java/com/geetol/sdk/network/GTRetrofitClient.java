@@ -3,7 +3,7 @@ package com.geetol.sdk.network;
 import android.util.Log;
 
 import com.geetol.sdk.BuildConfig;
-import com.geetol.sdk.GeetolSDKConfig;
+import com.geetol.sdk.GTSDKConfig;
 
 import java.util.concurrent.TimeUnit;
 
@@ -32,7 +32,7 @@ public class GTRetrofitClient extends RetrofitClient {
 
     @Override
     protected String getBaseUrl() {
-        return GeetolSDKConfig.BASE_URL;
+        return GTSDKConfig.BASE_URL;
     }
 
     @Override
@@ -55,7 +55,7 @@ public class GTRetrofitClient extends RetrofitClient {
             builder.addNetworkInterceptor(new HttpLoggingInterceptor(new HttpLoggingInterceptor.Logger() {
                 @Override
                 public void log(@NonNull String s) {
-                    Log.d(GeetolSDKConfig.LOG_TAG, s);
+                    Log.d(GTSDKConfig.LOG_TAG, s);
                 }
             }).setLevel(HttpLoggingInterceptor.Level.BODY));
         }

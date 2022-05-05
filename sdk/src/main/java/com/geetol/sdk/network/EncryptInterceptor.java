@@ -4,25 +4,22 @@ import android.util.Base64;
 
 import androidx.annotation.NonNull;
 
-import com.geetol.sdk.GeetolSDKConfig;
+import com.geetol.sdk.GTSDKConfig;
 import com.geetol.sdk.manager.AppConfigManager;
 import com.geetol.sdk.proguard_data.UserData;
 
 import java.io.IOException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
 import okhttp3.FormBody;
-import okhttp3.HttpUrl;
 import okhttp3.Interceptor;
 import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
 import pers.cxd.corelibrary.util.ExceptionUtil;
-import pers.cxd.corelibrary.util.reflection.ReflectionUtil;
 
 /**
  * 对请求接口的数据进行加密的OkHttp拦截器
@@ -61,7 +58,7 @@ public class EncryptInterceptor implements Interceptor {
 
     private FormBody appendCommonForm(FormBody original) throws ReflectiveOperationException {
         Map<String, String> map = new TreeMap<>(String::compareTo);
-        map.put("appid", GeetolSDKConfig.APP_ID);
+        map.put("appid", GTSDKConfig.APP_ID);
         map.put("device", AppConfigManager.getInstance().getDeviceID());
         UserData userData = AppConfigManager.getInstance().getUserData();
         if (userData != null) {
@@ -77,7 +74,7 @@ public class EncryptInterceptor implements Interceptor {
                 .append("=")
                 .append(Base64.encodeToString(value.getBytes(), Base64.NO_WRAP))
                 .append("&"));
-        sb.append("key=").append(GeetolSDKConfig.APP_KEY);
+        sb.append("key=").append(GTSDKConfig.APP_KEY);
         mDigest.update(sb.toString().getBytes());
         FormBody.Builder builder = new FormBody.Builder();
         map.put("sign", byte2hex(mDigest.digest()));

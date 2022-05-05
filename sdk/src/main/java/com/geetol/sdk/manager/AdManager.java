@@ -12,7 +12,7 @@ import com.bytedance.sdk.openadsdk.TTAdSdk;
 import com.bytedance.sdk.openadsdk.TTCustomController;
 import com.bytedance.sdk.openadsdk.TTSplashAd;
 import com.geetol.sdk.BuildConfig;
-import com.geetol.sdk.GeetolSDKConfig;
+import com.geetol.sdk.GTSDKConfig;
 import com.hjq.permissions.XXPermissions;
 import com.umeng.commonsdk.UMConfigure;
 import com.umeng.commonsdk.listener.OnGetOaidListener;
@@ -149,7 +149,7 @@ public class AdManager {
         TTAdConfig adConfig = new TTAdConfig.Builder()
                 .appId(appId)
                 .useTextureView(false) //默认使用SurfaceView播放视频广告,当有SurfaceView冲突的场景，可以使用TextureView
-                .appName(GeetolSDKConfig.APP_NAME)
+                .appName(GTSDKConfig.APP_NAME)
                 .titleBarTheme(TTAdConstant.TITLE_BAR_THEME_DARK) //落地页主题
                 .allowShowNotify(true) //是否允许sdk展示通知栏提示,若设置为false则会导致通知栏不显示下载进度
                 .debug(BuildConfig.DEBUG) //测试阶段打开，可以通过日志排查问题，上线时去除该调用

@@ -15,7 +15,7 @@ import com.alibaba.sdk.android.oss.common.auth.OSSCredentialProvider;
 import com.alibaba.sdk.android.oss.common.auth.OSSPlainTextAKSKCredentialProvider;
 import com.alibaba.sdk.android.oss.model.PutObjectRequest;
 import com.alibaba.sdk.android.oss.model.PutObjectResult;
-import com.geetol.sdk.GeetolSDKConfig;
+import com.geetol.sdk.GTSDKConfig;
 import com.geetol.sdk.proguard_data.AliOssConfig;
 
 import org.apache.commons.codec.binary.Hex;
@@ -73,7 +73,7 @@ public class AliOssUtil {
     public static void uploadFileAsync(File uploadFile, Callback callback, @Nullable ExecutorService ioExecutor) {
         if (sOSSClient != null) {
             if (ioExecutor == null) {
-                ioExecutor = GeetolSDKConfig.SDK_GLOBAL_IO_EXECUTOR;
+                ioExecutor = GTSDKConfig.SDK_GLOBAL_IO_EXECUTOR;
             }
             ioExecutor.execute(() -> {
                 byte[] data;
@@ -122,7 +122,7 @@ public class AliOssUtil {
         }
         if (sOSSClient != null) {
             if (ioExecutor == null) {
-                ioExecutor = GeetolSDKConfig.SDK_GLOBAL_IO_EXECUTOR;
+                ioExecutor = GTSDKConfig.SDK_GLOBAL_IO_EXECUTOR;
             }
             final WeakReference<BatchCallback> wrBatchCallback = new WeakReference<>(batchCallback);
             ioExecutor.execute(() -> {
@@ -182,7 +182,7 @@ public class AliOssUtil {
     public static void uploadUriAsync(Context ctx, Uri uploadUri, Callback callback, @Nullable ExecutorService ioExecutor) {
         if (sOSSClient != null) {
             if (ioExecutor == null) {
-                ioExecutor = GeetolSDKConfig.SDK_GLOBAL_IO_EXECUTOR;
+                ioExecutor = GTSDKConfig.SDK_GLOBAL_IO_EXECUTOR;
             }
             final WeakReference<Callback> wrCallback = new WeakReference<>(callback);
             ioExecutor.execute(() -> {
@@ -232,7 +232,7 @@ public class AliOssUtil {
         }
         if (sOSSClient != null) {
             if (ioExecutor == null) {
-                ioExecutor = GeetolSDKConfig.SDK_GLOBAL_IO_EXECUTOR;
+                ioExecutor = GTSDKConfig.SDK_GLOBAL_IO_EXECUTOR;
             }
             final WeakReference<BatchCallback> wrBatchCallback = new WeakReference<>(batchCallback);
             ioExecutor.execute(() -> {

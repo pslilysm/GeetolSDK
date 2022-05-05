@@ -27,9 +27,11 @@ android {
 dependencies {
 
     implementation 'androidx.appcompat:appcompat:1.4.1'
-    implementation 'com.google.android.material:material:1.5.0'
+    implementation 'com.google.android.material:material:1.6.0'
+    implementation "androidx.multidex:multidex:2.0.1"
 
-    // proguard keep open ad sdk
+    // proguard keep
+    // open ad sdk
     api fileTree(dir: 'libs', include: ['*.jar', '*.aar'])
 
     // proguard ignore
@@ -39,17 +41,28 @@ dependencies {
     api 'com.github.pslilysm.commonmodule:rxlibrary:1.1.7'
 
     // proguard ignore
+    // Ali cloud oss SDK
     api 'com.aliyun.dpa:oss-android-sdk:2.9.11'
 
     // proguard ignore
     api group: 'commons-codec', name: 'commons-codec', version: '1.15'
 
     // proguard keep
+    // Umeng SDK
     api  'com.umeng.umsdk:common:9.4.4'// 必选
     api  'com.umeng.umsdk:asms:1.4.1'// 必选
     api 'com.umeng.umsdk:apm:1.5.2' // 错误分析升级为独立SDK，看crash数据请一定
 
     // proguard ignore
     api 'com.github.getActivity:XXPermissions:13.5'
+
+    // proguard keep
+    // Wechat SDK
+    api 'com.tencent.mm.opensdk:wechat-sdk-android:6.8.0'
+
+    // proguard keep
+    // 腾讯Bugly SDK
+    implementation 'com.tencent.bugly:crashreport:3.3.3' //其中latest.release指代最新Bugly SDK版本号，也可以指定明确的版本号，例如2.1.9
+    implementation 'com.tencent.bugly:nativecrashreport:3.9.2' //其中latest.release指代最新Bugly NDK版本号，也可以指定明确的版本号，例如3.0
 
 }

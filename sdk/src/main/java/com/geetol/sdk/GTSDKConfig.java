@@ -10,7 +10,7 @@ import pers.cxd.corelibrary.util.ExecutorsHolder;
  * @author pslilysm
  * @since 1.0.0
  */
-public class GeetolSDKConfig {
+public class GTSDKConfig {
 
     public static String BASE_URL;
     public static String APP_ID;
@@ -20,6 +20,9 @@ public class GeetolSDKConfig {
     public static String LOG_TAG = "DEBUG_GeetolSDK";
     public static ScheduledExecutorService SDK_GLOBAL_IO_EXECUTOR = ExecutorsHolder.io();
     public static ScheduledExecutorService SDK_GLOBAL_COMPUTE_EXECUTOR = ExecutorsHolder.compute();
+
+    public static String BUGLY_KEY;
+    public static String UMENG_KEY;
 
     /**
      * 初始化SDK配置
@@ -64,4 +67,21 @@ public class GeetolSDKConfig {
         SDK_GLOBAL_COMPUTE_EXECUTOR = globalComputeExecutor;
     }
 
+    /**
+     * 初始化腾讯Bugly app key
+     *
+     * @param buglyKey
+     */
+    public static void initBuglyKey(String buglyKey) {
+        BUGLY_KEY = buglyKey;
+    }
+
+    /**
+     * 初始化友盟 app key
+     *
+     * @param umengKey
+     */
+    public static void initUmengKey(String umengKey) {
+        UMENG_KEY = umengKey;
+    }
 }
