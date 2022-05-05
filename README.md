@@ -12,7 +12,7 @@ allprojects {
     }
 }
 ```
-or in gradle 7.1.2
+    or in gradle 7 and above
 ```groovy
 dependencyResolutionManagement {
     repositories {
@@ -26,6 +26,6 @@ dependencyResolutionManagement {
 ```groovy
 dependencies {
     // add sdk lib to your dependencies
-    implementation 'com.github.pslilysm.GeetolSDK:sdk:1.0.0'
+    implementation 'com.github.pslilysm.GeetolSDK:sdk:1.0.1'
 }
 ```

@@ -1,7 +1,10 @@
 package com.geetol.sdk.manager;
 
 import android.Manifest;
+import android.content.pm.PackageManager;
 import android.view.View;
+
+import androidx.core.content.ContextCompat;
 
 import com.bytedance.sdk.openadsdk.AdSlot;
 import com.bytedance.sdk.openadsdk.TTAdConfig;
@@ -13,7 +16,6 @@ import com.bytedance.sdk.openadsdk.TTCustomController;
 import com.bytedance.sdk.openadsdk.TTSplashAd;
 import com.geetol.sdk.BuildConfig;
 import com.geetol.sdk.GTSDKConfig;
-import com.hjq.permissions.XXPermissions;
 import com.umeng.commonsdk.UMConfigure;
 import com.umeng.commonsdk.listener.OnGetOaidListener;
 
@@ -158,19 +160,18 @@ public class AdManager {
                 .customController(new TTCustomController() {
                     @Override
                     public boolean isCanUseLocation() {
-                        return XXPermissions.isGranted(AppHolder.get(),
-                                Manifest.permission.ACCESS_COARSE_LOCATION,
-                                Manifest.permission.ACCESS_FINE_LOCATION);
+                        return ContextCompat.checkSelfPermission(AppHolder.get(), Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED
+                                && ContextCompat.checkSelfPermission(AppHolder.get(), Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED;
                     }
 
                     @Override
                     public boolean isCanUsePhoneState() {
-                        return XXPermissions.isGranted(AppHolder.get(), Manifest.permission.READ_PHONE_STATE);
+                        return ContextCompat.checkSelfPermission(AppHolder.get(), Manifest.permission.READ_PHONE_STATE) == PackageManager.PERMISSION_GRANTED;
                     }
 
                     @Override
                     public boolean isCanUseWriteExternal() {
-                        return XXPermissions.isGranted(AppHolder.get(), Manifest.permission.WRITE_EXTERNAL_STORAGE);
+                        return ContextCompat.checkSelfPermission(AppHolder.get(), Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED;
                     }
 
                     @Override
