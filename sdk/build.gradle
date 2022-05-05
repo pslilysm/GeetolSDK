@@ -32,7 +32,7 @@ dependencies {
 
     // proguard keep
     // open ad sdk
-    api fileTree(dir: 'D:\\ASProjects\\GeetolSDK\\sdk\\libs', include: ['*.aar', '*.jar'], exclude: [])
+    api project(':open-ad-sdk')
 
     // proguard ignore
     // add core lib to your dependencies
