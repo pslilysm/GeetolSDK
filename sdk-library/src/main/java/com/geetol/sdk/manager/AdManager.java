@@ -4,8 +4,7 @@ import android.content.Context;
 import android.text.TextUtils;
 import android.view.View;
 
-import com.geetol.sdk.BuildConfig;
-import com.geetol.sdk.GTSDKConfig;
+import com.geetol.sdk.GeetolSDK;
 
 import java.lang.ref.WeakReference;
 import java.lang.reflect.InvocationHandler;
@@ -160,10 +159,10 @@ public class AdManager {
         Object builder = ReflectionUtil.newInstance(builderClazz);
         ReflectionUtil.invokeMethod(builder, "appId", String.class, appId);
         ReflectionUtil.invokeMethod(builder, "useTextureView", boolean.class, false);
-        ReflectionUtil.invokeMethod(builder, "appName", String.class, GTSDKConfig.APP_NAME);
+        ReflectionUtil.invokeMethod(builder, "appName", String.class, GeetolSDK.getConfig().getAppName());
         ReflectionUtil.invokeMethod(builder, "titleBarTheme", int.class, 1);
         ReflectionUtil.invokeMethod(builder, "allowShowNotify", boolean.class, true);
-        ReflectionUtil.invokeMethod(builder, "debug", boolean.class, BuildConfig.DEBUG);
+        ReflectionUtil.invokeMethod(builder, "debug", boolean.class, GeetolSDK.getConfig().debug());
         ReflectionUtil.invokeMethod(builder, "directDownloadNetworkType", int[].class, new int[0]);
         ReflectionUtil.invokeMethod(builder, "supportMultiProcess", boolean.class, false);
         Object adConfig = ReflectionUtil.invokeMethod(builder, "build");

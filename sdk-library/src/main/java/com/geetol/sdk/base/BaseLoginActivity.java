@@ -9,7 +9,7 @@ import android.os.Message;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-import com.geetol.sdk.GTApplication;
+import com.geetol.sdk.GeetolApplication;
 import com.geetol.sdk.constant.AppConfigs;
 import com.geetol.sdk.constant.EventCodes;
 import com.geetol.sdk.manager.AppConfigManager;
@@ -35,7 +35,7 @@ import pers.cxd.rxlibrary.RxUtil;
  */
 public abstract class BaseLoginActivity extends BaseAct implements IAppView, Handler.Callback, EventHandler.EventCallback {
 
-    private final IWXAPI mWechatApi = GTApplication.getWechatApi();
+    private final IWXAPI mWechatApi = GeetolApplication.getWechatApi();
     private final CompositeDisposable mSub = new CompositeDisposable();
     private final Handler mH = new Handler(Looper.getMainLooper(), this);
     private final int COUNTDOWN_MSG = 100;

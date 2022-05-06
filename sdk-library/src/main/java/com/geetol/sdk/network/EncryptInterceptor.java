@@ -4,7 +4,7 @@ import android.util.Base64;
 
 import androidx.annotation.NonNull;
 
-import com.geetol.sdk.GTSDKConfig;
+import com.geetol.sdk.GeetolSDK;
 import com.geetol.sdk.manager.AppConfigManager;
 import com.geetol.sdk.proguard_data.UserData;
 
@@ -58,7 +58,7 @@ public class EncryptInterceptor implements Interceptor {
 
     private FormBody appendCommonForm(FormBody original) throws ReflectiveOperationException {
         Map<String, String> map = new TreeMap<>(String::compareTo);
-        map.put("appid", GTSDKConfig.APP_ID);
+        map.put("appid", GeetolSDK.getConfig().getAppId());
         map.put("device", AppConfigManager.getInstance().getDeviceID());
         UserData userData = AppConfigManager.getInstance().getUserData();
         if (userData != null) {
@@ -74,7 +74,7 @@ public class EncryptInterceptor implements Interceptor {
                 .append("=")
                 .append(Base64.encodeToString(value.getBytes(), Base64.NO_WRAP))
                 .append("&"));
-        sb.append("key=").append(GTSDKConfig.APP_KEY);
+        sb.append("key=").append(GeetolSDK.getConfig().getAppKey());
         mDigest.update(sb.toString().getBytes());
         FormBody.Builder builder = new FormBody.Builder();
         map.put("sign", byte2hex(mDigest.digest()));

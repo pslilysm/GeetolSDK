@@ -8,7 +8,7 @@ import android.view.ViewGroup;
 
 import androidx.annotation.Nullable;
 
-import com.geetol.sdk.GTApplication;
+import com.geetol.sdk.GeetolApplication;
 import com.geetol.sdk.constant.MMKVKeys;
 import com.geetol.sdk.manager.AdManager;
 import com.geetol.sdk.manager.AppConfigManager;
@@ -70,7 +70,7 @@ public abstract class BaseSplashActivity extends BaseAct implements
     protected void onUserAgreedProtocol() {
         showLoadingView("应用数据加载中...", false);
         MMKVUtil.encode(MMKVKeys.USER_AGREED_PROTOCOL, true);
-        GTApplication.getInstance().init();
+        GeetolApplication.getInstance().init();
         AppConfigManager.getInstance().initAsync(BaseSplashActivity.this);
     }
 

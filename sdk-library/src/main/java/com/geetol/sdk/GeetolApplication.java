@@ -26,7 +26,7 @@ import pers.cxd.corelibrary.util.MMKVUtil;
  * @author pslilysm
  * @since 1.0.0
  */
-public class GTApplication extends MultiDexApplication {
+public abstract class GeetolApplication extends MultiDexApplication {
 
     private static final Singleton<IWXAPI> sWechatApi = new Singleton<IWXAPI>() {
         @Override
@@ -43,11 +43,13 @@ public class GTApplication extends MultiDexApplication {
         return sWechatApi.getInstance();
     }
 
-    private static GTApplication sInstance;
+    private static GeetolApplication sInstance;
 
-    public static GTApplication getInstance() {
+    public static GeetolApplication getInstance() {
         return sInstance;
     }
+
+    protected abstract GeetolConfig buildGeetolConfig(GeetolConfig.Builder builder);
 
     @Override
     public void onCreate() {
@@ -55,8 +57,9 @@ public class GTApplication extends MultiDexApplication {
         sInstance = this;
         RxJavaPlugins.setErrorHandler(throwable -> {
         });
-        if (!TextUtils.isEmpty(GTSDKConfig.UMENG_KEY)) {
-            UMConfigure.preInit(this, GTSDKConfig.UMENG_KEY, ChannelUtil.getChannelName());
+        GeetolSDK.init(buildGeetolConfig(new GeetolConfig.Builder()));
+        if (!TextUtils.isEmpty(GeetolSDK.getConfig().getUmengKey())) {
+            UMConfigure.preInit(this, GeetolSDK.getConfig().getUmengKey(), ChannelUtil.getChannelName());
         }
         if (MMKVUtil.decode(MMKVKeys.USER_AGREED_PROTOCOL, false)) {
             init();
@@ -64,11 +67,11 @@ public class GTApplication extends MultiDexApplication {
     }
 
     public void init() {
-        if (!TextUtils.isEmpty(GTSDKConfig.BUGLY_KEY)) {
-            CrashReport.initCrashReport(this, GTSDKConfig.BUGLY_KEY, BuildConfig.DEBUG);
+        if (!TextUtils.isEmpty(GeetolSDK.getConfig().getBuglyKey())) {
+            CrashReport.initCrashReport(this, GeetolSDK.getConfig().getBuglyKey(), GeetolSDK.getConfig().debug());
         }
-        if (!TextUtils.isEmpty(GTSDKConfig.UMENG_KEY)) {
-            UMConfigure.init(this, GTSDKConfig.UMENG_KEY, ChannelUtil.getChannelName(), UMConfigure.DEVICE_TYPE_PHONE, null);
+        if (!TextUtils.isEmpty(GeetolSDK.getConfig().getUmengKey())) {
+            UMConfigure.init(this, GeetolSDK.getConfig().getUmengKey(), ChannelUtil.getChannelName(), UMConfigure.DEVICE_TYPE_PHONE, null);
         }
     }
 
