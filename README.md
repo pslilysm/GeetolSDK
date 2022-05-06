@@ -26,6 +26,6 @@ dependencyResolutionManagement {
 ```groovy
 dependencies {
     // add sdk lib to your dependencies
-    implementation 'com.github.pslilysm.GeetolSDK:sdk:1.0.3'
+    implementation 'com.github.pslilysm:GeetolSDK:1.0.4'
 }
 ```

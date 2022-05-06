@@ -1,29 +1,21 @@
 package com.geetol.sdk.manager;
 
-import android.Manifest;
-import android.content.pm.PackageManager;
+import android.content.Context;
+import android.text.TextUtils;
 import android.view.View;
 
-import androidx.core.content.ContextCompat;
-
-import com.bytedance.sdk.openadsdk.AdSlot;
-import com.bytedance.sdk.openadsdk.TTAdConfig;
-import com.bytedance.sdk.openadsdk.TTAdConstant;
-import com.bytedance.sdk.openadsdk.TTAdLoadType;
-import com.bytedance.sdk.openadsdk.TTAdNative;
-import com.bytedance.sdk.openadsdk.TTAdSdk;
-import com.bytedance.sdk.openadsdk.TTCustomController;
-import com.bytedance.sdk.openadsdk.TTSplashAd;
 import com.geetol.sdk.BuildConfig;
 import com.geetol.sdk.GTSDKConfig;
-import com.umeng.commonsdk.UMConfigure;
-import com.umeng.commonsdk.listener.OnGetOaidListener;
 
 import java.lang.ref.WeakReference;
+import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.Method;
+import java.lang.reflect.Proxy;
 
 import pers.cxd.corelibrary.AppHolder;
 import pers.cxd.corelibrary.SingletonFactory;
 import pers.cxd.corelibrary.util.ScreenUtil;
+import pers.cxd.corelibrary.util.reflection.ReflectionUtil;
 
 /**
  * 广告Manager
@@ -40,6 +32,8 @@ public class AdManager {
 
     private volatile boolean initialized;
 
+    private static final String TT_AD_PACKAGE = "com.bytedance.sdk.openadsdk";
+
     private AdManager() {
     }
 
@@ -51,136 +45,135 @@ public class AdManager {
      * @param viewWidth      广告View宽度 建议使用{@link ScreenUtil#getRealWidth()}
      * @param viewHeight     广告View高度 建议使用{@link ScreenUtil#getRealHeight()} - {@link ScreenUtil#getNavBarHeight()}
      * @param splashCallback 广告回调
+     * @throws ReflectiveOperationException 未依赖穿山甲广告SDK时抛这个异常，如果依赖了请查看包名是否被混淆还是其他的原因
      */
-    public void loadSplashAd(String appId, String adCodeId, int viewWidth, int viewHeight, SplashCallback splashCallback) {
+    public void loadSplashAd(String appId, String adCodeId, int viewWidth, int viewHeight, SplashCallback splashCallback)
+            throws ReflectiveOperationException {
         final WeakReference<SplashCallback> wrCallback = new WeakReference<>(splashCallback);
         if (!initialized) {
-            UMConfigure.getOaid(AppHolder.get(), new OnGetOaidListener() {
+            ClassLoader classLoader = AppHolder.get().getClassLoader();
+            Class<?> callbackClazz = classLoader.loadClass(TT_AD_PACKAGE + ".TTAdSdk$InitCallback");
+            Object initCallback = Proxy.newProxyInstance(classLoader, new Class[]{callbackClazz}, new InvocationHandler() {
                 @Override
-                public void onGetOaid(String s) {
-                    initAd(appId, s, new TTAdSdk.InitCallback() {
-                        @Override
-                        public void success() {
+                public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+                    switch (method.getName()) {
+                        case "success":
                             initialized = true;
                             loadSplashAdInternal(adCodeId, viewWidth, viewHeight, wrCallback);
-                        }
-
-                        @Override
-                        public void fail(int i, String s) {
+                            break;
+                        case "fail":
                             SplashCallback splashCallback1 = wrCallback.get();
                             if (splashCallback1 != null && splashCallback1.isActive()) {
                                 splashCallback1.onFinish();
                             }
-                        }
-                    });
+                            break;
+                    }
+                    return null;
                 }
             });
+            initAd(appId, callbackClazz, initCallback);
         } else {
             loadSplashAdInternal(adCodeId, viewWidth, viewHeight, wrCallback);
         }
     }
 
-    private void loadSplashAdInternal(String adCodeId, int viewWidth, int viewHeight, WeakReference<SplashCallback> wrCallback) {
-        TTAdNative mTTAdNative = TTAdSdk.getAdManager().createAdNative(AppHolder.get());
-        AdSlot adSlot = new AdSlot.Builder()
-                .setCodeId(adCodeId)
-                .setImageAcceptedSize(viewWidth, viewHeight)
-                .setExpressViewAcceptedSize(viewWidth, viewHeight)
-                .setAdLoadType(TTAdLoadType.PRELOAD)
-                .build();
-        mTTAdNative.loadSplashAd(adSlot, new TTAdNative.SplashAdListener() {
-            @Override
-            public void onError(int i, String s) {
-                SplashCallback splashCallback = wrCallback.get();
-                if (splashCallback != null && splashCallback.isActive()) {
-                    splashCallback.onFinish();
-                }
+    private void loadSplashAdInternal(String adCodeId, int viewWidth, int viewHeight, WeakReference<SplashCallback> wrCallback)
+            throws ReflectiveOperationException {
+        ClassLoader classLoader = AppHolder.get().getClassLoader();
+        Object adManager = ReflectionUtil.invokeStaticMethod(TT_AD_PACKAGE + ".TTAdSdk", classLoader,"getAdManager");
+        Object mTTAdNative = ReflectionUtil.invokeMethod(adManager, "createAdNative", Context.class, AppHolder.get());
+        Object adSlotBuilder = ReflectionUtil.newInstance(TT_AD_PACKAGE + ".AdSlot$Builder", classLoader);
+        Class<?> adLoadTypeClazz = classLoader.loadClass(TT_AD_PACKAGE + ".TTAdLoadType");
+        Object[] adLoadTypes = adLoadTypeClazz.getEnumConstants();
+        Object adLoadType = null;
+        assert adLoadTypes != null;
+        for (Object loadType : adLoadTypes) {
+            if (TextUtils.equals(loadType.toString(), "PRELOAD")) {
+                adLoadType = loadType;
+                break;
             }
-
+        }
+        ReflectionUtil.invokeMethod(adSlotBuilder, "setCodeId", String.class, adCodeId);
+        ReflectionUtil.invokeMethod(adSlotBuilder, "setImageAcceptedSize", int.class, int.class, viewWidth, viewHeight);
+        ReflectionUtil.invokeMethod(adSlotBuilder, "setExpressViewAcceptedSize", float.class, float.class, viewWidth, viewHeight);
+        ReflectionUtil.invokeMethod(adSlotBuilder, "setAdLoadType", adLoadTypeClazz, adLoadType);
+        ReflectionUtil.invokeMethod(adSlotBuilder, "setCodeId", String.class, adCodeId);
+        Object adSlot = ReflectionUtil.invokeMethod(adSlotBuilder, "build");
+        Class<?> splashAdListenerClazz = classLoader.loadClass(TT_AD_PACKAGE + ".TTAdNative$SplashAdListener");
+        Object splashAdListener = Proxy.newProxyInstance(classLoader, new Class[]{splashAdListenerClazz}, new InvocationHandler() {
             @Override
-            public void onTimeout() {
-                SplashCallback splashCallback = wrCallback.get();
-                if (splashCallback != null && splashCallback.isActive()) {
-                    splashCallback.onFinish();
-                }
-            }
-
-            @Override
-            public void onSplashAdLoad(TTSplashAd ad) {
-                //获取SplashView
-                SplashCallback splashCallback = wrCallback.get();
-                if (splashCallback != null && splashCallback.isActive()) {
-//                    mSplashContainer.removeAllViews();
-                    //把SplashView 添加到ViewGroup中,注意开屏广告view：width =屏幕宽；height >=75%屏幕高
-                    if (ad != null && ad.getSplashView() != null) {
-                        splashCallback.onSplashAdLoaded(ad.getSplashView());
-                        ad.setSplashInteractionListener(new TTSplashAd.AdInteractionListener() {
-                            @Override
-                            public void onAdClicked(View view, int i) {
-                            }
-
-                            @Override
-                            public void onAdShow(View view, int i) {
-                            }
-
-                            @Override
-                            public void onAdSkip() {
-                                SplashCallback splashCallback1 = wrCallback.get();
-                                if (splashCallback1 != null && splashCallback1.isActive()) {
-                                    splashCallback1.onFinish();
-                                }
-                            }
-
-                            @Override
-                            public void onAdTimeOver() {
-                                SplashCallback splashCallback1 = wrCallback.get();
-                                if (splashCallback1 != null && splashCallback1.isActive()) {
-                                    splashCallback1.onFinish();
-                                }
-                            }
-                        });
-                    } else {
-                        splashCallback.onFinish();
+            public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+                switch (method.getName()) {
+                    case "onError":
+                    case "onTimeout":{
+                        SplashCallback splashCallback = wrCallback.get();
+                        if (splashCallback != null && splashCallback.isActive()) {
+                            splashCallback.onFinish();
+                        }
                     }
+                        break;
+                    case "onSplashAdLoad":
+                        Object ttSplashAd = args[0];
+                        SplashCallback splashCallback = wrCallback.get();
+                        if (splashCallback != null && splashCallback.isActive()) {
+                            if (ttSplashAd != null) {
+                                View splashView = ReflectionUtil.invokeMethod(ttSplashAd, "getSplashView");
+                                if (splashView != null) {
+                                    splashCallback.onSplashAdLoaded(splashView);
+                                    Class<?> adInteractionListenerClazz = classLoader.loadClass(TT_AD_PACKAGE + ".TTSplashAd$AdInteractionListener");
+                                    Object adInteractionListener = Proxy.newProxyInstance(classLoader, new Class[]{adInteractionListenerClazz}, new InvocationHandler() {
+                                        @Override
+                                        public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+                                            switch (method.getName()) {
+                                                case "onAdSkip":
+                                                case "onAdTimeOver":
+                                                    SplashCallback splashCallback1 = wrCallback.get();
+                                                    if (splashCallback1 != null && splashCallback1.isActive()) {
+                                                        splashCallback1.onFinish();
+                                                    }
+                                                    break;
+                                            }
+                                            return null;
+                                        }
+                                    });
+                                    ReflectionUtil.invokeMethod(ttSplashAd, "setSplashInteractionListener",
+                                            adInteractionListenerClazz,
+                                            adInteractionListener);
+                                }
+                            } else {
+                                splashCallback.onFinish();
+                            }
+                        }
+                        break;
                 }
+                return null;
             }
-        }, 4000);
+        });
+        ReflectionUtil.invokeMethod(mTTAdNative, "loadSplashAd", adSlot.getClass(), splashAdListenerClazz, int.class,
+                adSlot, splashAdListener, 4000);
     }
 
-    private void initAd(String appId, String oaId, TTAdSdk.InitCallback initCallback) {
-        TTAdConfig adConfig = new TTAdConfig.Builder()
-                .appId(appId)
-                .useTextureView(false) //默认使用SurfaceView播放视频广告,当有SurfaceView冲突的场景，可以使用TextureView
-                .appName(GTSDKConfig.APP_NAME)
-                .titleBarTheme(TTAdConstant.TITLE_BAR_THEME_DARK) //落地页主题
-                .allowShowNotify(true) //是否允许sdk展示通知栏提示,若设置为false则会导致通知栏不显示下载进度
-                .debug(BuildConfig.DEBUG) //测试阶段打开，可以通过日志排查问题，上线时去除该调用
-                .directDownloadNetworkType(TTAdConstant.NETWORK_STATE_WIFI) //允许直接下载的网络状态集合,没有设置的网络下点击下载apk会有二次确认弹窗，弹窗中会披露应用信息
-                .supportMultiProcess(false)
-                .customController(new TTCustomController() {
-                    @Override
-                    public boolean isCanUseLocation() {
-                        return ContextCompat.checkSelfPermission(AppHolder.get(), Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED
-                                && ContextCompat.checkSelfPermission(AppHolder.get(), Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED;
-                    }
-
-                    @Override
-                    public boolean isCanUsePhoneState() {
-                        return ContextCompat.checkSelfPermission(AppHolder.get(), Manifest.permission.READ_PHONE_STATE) == PackageManager.PERMISSION_GRANTED;
-                    }
-
-                    @Override
-                    public boolean isCanUseWriteExternal() {
-                        return ContextCompat.checkSelfPermission(AppHolder.get(), Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED;
-                    }
-
-                    @Override
-                    public String getDevOaid() {
-                        return oaId;
-                    }
-                })
-                .build();
-        TTAdSdk.init(AppHolder.get(), adConfig, initCallback);
+    private void initAd(String appId, Class<?> initCallbackClazz, Object initCallback) throws ReflectiveOperationException {
+        ClassLoader classLoader = AppHolder.get().getClassLoader();
+        Class<?> builderClazz = classLoader.loadClass(TT_AD_PACKAGE + ".TTAdConfig$Builder");
+        Class<?> controllerClazz = classLoader.loadClass(TT_AD_PACKAGE + ".TTCustomController");
+        Object builder = ReflectionUtil.newInstance(builderClazz);
+        ReflectionUtil.invokeMethod(builder, "appId", String.class, appId);
+        ReflectionUtil.invokeMethod(builder, "useTextureView", boolean.class, false);
+        ReflectionUtil.invokeMethod(builder, "appName", String.class, GTSDKConfig.APP_NAME);
+        ReflectionUtil.invokeMethod(builder, "titleBarTheme", int.class, 1);
+        ReflectionUtil.invokeMethod(builder, "allowShowNotify", boolean.class, true);
+        ReflectionUtil.invokeMethod(builder, "debug", boolean.class, BuildConfig.DEBUG);
+        ReflectionUtil.invokeMethod(builder, "directDownloadNetworkType", int[].class, new int[0]);
+        ReflectionUtil.invokeMethod(builder, "supportMultiProcess", boolean.class, false);
+        Object adConfig = ReflectionUtil.invokeMethod(builder, "build");
+        ReflectionUtil.invokeStaticMethod(TT_AD_PACKAGE + ".TTAdSdk", classLoader, "init",
+                Context.class,
+                adConfig.getClass(),
+                initCallbackClazz,
+                AppHolder.get(),
+                adConfig,
+                initCallback);
     }
 
     public interface SplashCallback {

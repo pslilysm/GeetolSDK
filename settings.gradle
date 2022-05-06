@@ -16,5 +16,3 @@ dependencyResolutionManagement {
 rootProject.name = "GeetolSDK"
 include ':app'
 include ':sdk-library'
-//include ':open-ad-sdk'
-include ':open-ad-sdk-library'
