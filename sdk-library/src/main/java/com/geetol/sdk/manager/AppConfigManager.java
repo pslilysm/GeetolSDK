@@ -4,7 +4,6 @@ import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
 import android.text.TextUtils;
-import android.util.Log;
 
 import androidx.annotation.Nullable;
 
@@ -35,8 +34,8 @@ import pers.cxd.rxlibrary.BaseHttpObserverImpl;
 import pers.cxd.rxlibrary.RxUtil;
 
 /**
- *  应用基本配置Manager
- *  用于管理{@link UserConfig}、{@link UserData}、{@link AliOssConfig}这三个数据
+ * 应用基本配置Manager
+ * 用于管理{@link UserConfig}、{@link UserData}、{@link AliOssConfig}这三个数据
  *
  * @author pslilysm
  * @since 1.0.0
@@ -219,12 +218,6 @@ public class AppConfigManager {
                             MMKVUtil.encode(MMKVKeys.DEVICE_REGISTERED, true);
                         }
                     }
-
-                    @Override
-                    public void onError(@NonNull Throwable e) {
-                        super.onError(e);
-                        Log.e("DEBUG_AppConfigMgr", "onError: ", e);
-                    }
                 }, RxUtil.Transformers.NON());
     }
 
@@ -270,7 +263,7 @@ public class AppConfigManager {
     /**
      * 获取开关的val1值
      *
-     * @param code 开关代码位
+     * @param code       开关代码位
      * @param defaultVal 默认值
      * @return the val1 represent the code, or defaultVal
      */
@@ -279,6 +272,24 @@ public class AppConfigManager {
             for (UserConfig.Swt swt : mUserConfig.getSwt()) {
                 if (TextUtils.equals(code, swt.getCode())) {
                     return swt.getVal1();
+                }
+            }
+        }
+        return defaultVal;
+    }
+
+    /**
+     * 获取开关的val2值
+     *
+     * @param code       开关代码位
+     * @param defaultVal 默认值
+     * @return the val2 represent the code, or defaultVal
+     */
+    public String getSwtVal2(String code, String defaultVal) {
+        if (mUserConfig != null) {
+            for (UserConfig.Swt swt : mUserConfig.getSwt()) {
+                if (TextUtils.equals(code, swt.getCode())) {
+                    return swt.getVal2();
                 }
             }
         }
@@ -316,7 +327,16 @@ public class AppConfigManager {
     }
 
     public interface InitCallback {
+
+        /**
+         * 应用基本数据初始化完成
+         */
         void initialized();
+
+        /**
+         * 应用基本数据初始化失败，
+         * 原因大多数都是网络问题，这时应该提醒用户去重试
+         */
         void initFailed();
     }
 
