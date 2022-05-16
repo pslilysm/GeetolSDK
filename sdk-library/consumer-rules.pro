@@ -1,5 +1,6 @@
 #自己代码混淆
 -keepclassmembers public class com.geetol.yydcxl.proguard_data.**{*;}
+-keep public class com.alipay.sdk.app.PayTask{*;}
 #自己代码混淆
 
 #bugly

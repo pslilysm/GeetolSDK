@@ -14,14 +14,16 @@ public interface IAppView extends UiComponent, BaseView {
     /**
      * 等同于调用 {@code showLoadingView(s, true)}
      *
-     * @param s 文本
+     * @param s 等待文案
      */
-    void showLoadingView(CharSequence s);
+    default void showLoadingView(CharSequence s) {
+        showLoadingView(s, true);
+    }
 
     /**
      * 显示等待UI
      *
-     * @param s 文本
+     * @param s           等待文案
      * @param cancellable 是否可取消
      */
     void showLoadingView(CharSequence s, boolean cancellable);
@@ -34,13 +36,14 @@ public interface IAppView extends UiComponent, BaseView {
     /**
      * 设置等待UI文案
      *
-     * @param s 文案
+     * @param s 等待文案
      */
     void setLoadingText(CharSequence s);
 
     /**
      * 销毁当前的UI组件，默认啥也不干
      */
-    default void finish() {}
+    default void finish() {
+    }
 
 }
