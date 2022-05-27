@@ -43,11 +43,14 @@ public class AdManager {
      * @param adCodeId       穿山甲广告位ID
      * @param viewWidth      广告View宽度 建议使用{@link ScreenUtil#getRealWidth()}
      * @param viewHeight     广告View高度 建议使用{@link ScreenUtil#getRealHeight()} - {@link ScreenUtil#getNavBarHeight()}
-     * @param splashCallback 广告回调
+     * @param splashCallback 广告回调，注意这里使用的是WeakReference，所以一定要UI组件去实现回调，不能使用匿名内部类，不然可能会导致没有回调
      * @throws ReflectiveOperationException 未依赖穿山甲广告SDK时抛这个异常，如果依赖了请查看包名是否被混淆还是其他的原因
      */
     public void loadSplashAd(String appId, String adCodeId, int viewWidth, int viewHeight, SplashCallback splashCallback)
             throws ReflectiveOperationException {
+        if (splashCallback.getClass().isAnonymousClass()) {
+            throw new IllegalArgumentException("An anonymous inner class cannot be used as a splashCallback");
+        }
         final WeakReference<SplashCallback> wrCallback = new WeakReference<>(splashCallback);
         if (!initialized) {
             ClassLoader classLoader = AppHolder.get().getClassLoader();
@@ -79,7 +82,7 @@ public class AdManager {
     private void loadSplashAdInternal(String adCodeId, int viewWidth, int viewHeight, WeakReference<SplashCallback> wrCallback)
             throws ReflectiveOperationException {
         ClassLoader classLoader = AppHolder.get().getClassLoader();
-        Object adManager = ReflectionUtil.invokeStaticMethod(TT_AD_PACKAGE + ".TTAdSdk", classLoader,"getAdManager");
+        Object adManager = ReflectionUtil.invokeStaticMethod(TT_AD_PACKAGE + ".TTAdSdk", classLoader, "getAdManager");
         Object mTTAdNative = ReflectionUtil.invokeMethod(adManager, "createAdNative", Context.class, AppHolder.get());
         Object adSlotBuilder = ReflectionUtil.newInstance(TT_AD_PACKAGE + ".AdSlot$Builder", classLoader);
         Class<?> adLoadTypeClazz = classLoader.loadClass(TT_AD_PACKAGE + ".TTAdLoadType");
@@ -104,13 +107,13 @@ public class AdManager {
             public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
                 switch (method.getName()) {
                     case "onError":
-                    case "onTimeout":{
+                    case "onTimeout": {
                         SplashCallback splashCallback = wrCallback.get();
                         if (splashCallback != null && splashCallback.isActive()) {
                             splashCallback.onFinish();
                         }
                     }
-                        break;
+                    break;
                     case "onSplashAdLoad":
                         Object ttSplashAd = args[0];
                         SplashCallback splashCallback = wrCallback.get();
